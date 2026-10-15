@@ -1,0 +1,17 @@
+# Exclude non-source files from AI index to save tokens
+node_modules/
+**/node_modules/**
+.venv/
+**/.venv/**
+**/bin/**
+**/obj/**
+**/dist/**
+**/build/**
+**/.dart_tool/**
+**/__pycache__/**
+**/.pytest_cache/**
+package-lock.json
+**/package-lock.json
+pubspec.lock
+**/pubspec.lock
+**/*.log

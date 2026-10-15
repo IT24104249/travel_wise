@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AEF158FB-6BD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TravelWise.Api", "src\TravelWise.Api\TravelWise.Api.csproj", "{F6F8F1EA-F750-4C41-ACFD-F7634B30528D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D0B4B919-262F-46C8-A3D6-9287A6C8C7DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TravelWise.Api.Tests", "tests\TravelWise.Api.Tests\TravelWise.Api.Tests.csproj", "{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,8 +24,13 @@ Global
 		{F6F8F1EA-F750-4C41-ACFD-F7634B30528D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6F8F1EA-F750-4C41-ACFD-F7634B30528D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6F8F1EA-F750-4C41-ACFD-F7634B30528D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F6F8F1EA-F750-4C41-ACFD-F7634B30528D} = {AEF158FB-6BDD-4A96-8FAA-957C1D09F2E7}
+		{E3137E1E-BC57-4FB5-B7DF-5487FB1ACE85} = {D0B4B919-262F-46C8-A3D6-9287A6C8C7DA}
 	EndGlobalSection
 EndGlobal

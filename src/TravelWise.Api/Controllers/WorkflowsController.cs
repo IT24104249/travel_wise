@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TravelWise.Api.Contracts;
 using TravelWise.Api.Data;
 using TravelWise.Api.Services;
@@ -63,6 +64,7 @@ public sealed class WorkflowsController(TravelWiseService service, AiWorkflowCli
         (await service.GetWorkflowAsync(id, ct)) is { } workflow ? Ok(workflow) : NotFound();
 
     [HttpPost("{id:guid}/approval")]
+    [Authorize(Policy = "StaffAdmin")]
     public async Task<IActionResult> Approve(Guid id, ApprovalRequest request, CancellationToken ct) =>
         (await service.ApproveWorkflowAsync(id, request, ct)) is { } workflow ? Ok(workflow) : NotFound();
 }

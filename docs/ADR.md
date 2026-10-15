@@ -108,7 +108,6 @@ TravelWise/
 │       │   ├── SettlementsController.cs      # Expense settlement endpoints
 │       │   ├── TripsController.cs            # Trip management endpoints
 │       │   ├── WeatherController.cs          # Weather lookup endpoint
-│       │   ├── WeatherForecastController.cs  # Default/sample forecast endpoint
 │       │   ├── WorkflowExecutionsController.cs # Agent execution history endpoints
 │       │   └── WorkflowsController.cs        # AI workflow and approval endpoints
 │       ├── Data/
@@ -124,7 +123,6 @@ TravelWise/
 │       ├── Program.cs                         # API startup, dependency injection and middleware
 │       ├── TravelWise.Api.csproj              # .NET project and package references
 │       ├── TravelWise.Api.http                # HTTP request examples
-│       ├── WeatherForecast.cs                 # Sample forecast model
 │       ├── appsettings.json                   # Shared API configuration
 │       ├── appsettings.Development.json      # Development API configuration
 │       ├── appsettings.Local.json             # Local API configuration

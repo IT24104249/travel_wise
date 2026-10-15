@@ -1,7 +1,38 @@
 namespace TravelWise.Api.Contracts;
 
-public sealed record CreateTripRequest(string Name, string Destination, DateOnly StartDate, DateOnly EndDate);
-public sealed record UpdateTripRequest(string Name, string Destination, DateOnly StartDate, DateOnly EndDate);
+public sealed record CreateTripRequest(
+    string Name,
+    string Destination,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    string? StartingPoint = null,
+    bool SubmittedToAdmin = true,
+    object? PlanningDetails = null,
+    string? TravellerName = null,
+    string? TravellerEmail = null,
+    string? TravelMethod = null,
+    string? TravelVehicleType = null
+);
+
+public sealed record UpdateTripRequest(
+    string Name,
+    string Destination,
+    DateOnly StartDate,
+    DateOnly EndDate,
+    string? StartingPoint = null,
+    bool? SubmittedToAdmin = null,
+    string? Status = null,
+    string? TravelMethod = null,
+    string? TravelVehicleType = null,
+    object? PlanningDetails = null
+);
+
+public sealed record AdminReviewTripRequest(
+    string Action, // "approve", "decline", "warn"
+    string? Note,
+    string? AiReviewJson = null,
+    string? AdminCorrectionNotes = null
+);
 
 public sealed record CreateBudgetRequest(Guid TripId, decimal Amount, string Currency = "LKR");
 public sealed record UpdateBudgetRequest(decimal Amount, string Currency = "LKR");

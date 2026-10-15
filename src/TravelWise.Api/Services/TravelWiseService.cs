@@ -8,18 +8,113 @@ namespace TravelWise.Api.Services;
 
 public sealed class TravelWiseService(TravelWiseDbContext db)
 {
-    public async Task<Trip> CreateTripAsync(CreateTripRequest request, CancellationToken ct)
+    public async Task<Trip> CreateTripAsync(CreateTripRequest request, string ownerUserId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Destination))
             throw new ArgumentException("Trip name and destination are required.");
-        if (request.EndDate < request.StartDate) throw new ArgumentException("End date must be after start date.");
-        var trip = new Trip { Name = request.Name.Trim(), Destination = request.Destination.Trim(), StartDate = request.StartDate, EndDate = request.EndDate };
+        if (string.IsNullOrWhiteSpace(request.StartingPoint))
+            throw new ArgumentException("Starting location is required.");
+        if (request.EndDate < request.StartDate)
+            throw new ArgumentException("End date cannot be earlier than start date.");
+        var userAccount = await db.UserAccounts.FirstOrDefaultAsync(u => u.Email == ownerUserId, ct);
+        var travellerName = !string.IsNullOrWhiteSpace(request.TravellerName)
+            ? request.TravellerName.Trim()
+            : (!string.IsNullOrWhiteSpace(userAccount?.DisplayName) ? userAccount.DisplayName : ownerUserId);
+        var travellerEmail = !string.IsNullOrWhiteSpace(request.TravellerEmail)
+            ? request.TravellerEmail.Trim()
+            : (!string.IsNullOrWhiteSpace(userAccount?.Email) ? userAccount.Email : ownerUserId);
+
+        var trip = new Trip
+        {
+            OwnerUserId = ownerUserId,
+            Name = request.Name.Trim(),
+            Destination = request.Destination.Trim(),
+            StartDate = request.StartDate,
+            EndDate = request.EndDate,
+            StartingPoint = request.StartingPoint?.Trim(),
+            TravellerName = travellerName,
+            TravellerEmail = travellerEmail,
+            TravelMethod = request.TravelMethod?.Trim(),
+            TravelVehicleType = request.TravelVehicleType?.Trim(),
+            SubmittedToAdmin = request.SubmittedToAdmin,
+            Status = request.SubmittedToAdmin ? "PendingReview" : "Active",
+            SubmittedAt = request.SubmittedToAdmin ? DateTime.UtcNow : null,
+            PlanningDetailsJson = request.PlanningDetails != null
+                ? System.Text.Json.JsonSerializer.Serialize(request.PlanningDetails)
+                : null
+        };
         db.Trips.Add(trip);
         await db.SaveChangesAsync(ct);
         return trip;
     }
 
-    public Task<List<Trip>> GetTripsAsync(CancellationToken ct) => db.Trips.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+    public Task<List<Trip>> GetSubmittedTripsAsync(CancellationToken ct) =>
+        db.Trips.Where(x => x.SubmittedToAdmin || x.Status == "PendingReview" || x.Status == "Reviewed" || x.Status == "Declined")
+            .OrderByDescending(x => x.SubmittedAt ?? x.CreatedAt)
+            .ToListAsync(ct);
+
+    public Task<List<Trip>> GetApprovedGroupTripsAsync(CancellationToken ct) =>
+        db.Trips.Where(x => x.Status == "Reviewed" || x.Status == "Approved")
+            .OrderByDescending(x => x.SubmittedAt ?? x.CreatedAt)
+            .ToListAsync(ct);
+
+    public async Task<Trip?> AdminReviewTripAsync(Guid id, AdminReviewTripRequest request, string adminUserId, CancellationToken ct)
+    {
+        var trip = await db.Trips.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (trip is null) return null;
+        switch (request.Action.ToLowerInvariant())
+        {
+            case "approve":
+                trip.Status = "Reviewed";
+                trip.AdminFeedback = request.Note?.Trim() ?? "Approved by admin.";
+                if (!string.IsNullOrWhiteSpace(request.AiReviewJson))
+                    trip.AdminApprovedAiReviewJson = request.AiReviewJson;
+                if (!string.IsNullOrWhiteSpace(request.AdminCorrectionNotes))
+                    trip.AdminCorrectionNotes = request.AdminCorrectionNotes;
+                break;
+            case "decline":
+                trip.Status = "Declined";
+                trip.AdminFeedback = request.Note?.Trim() ?? "Declined by admin.";
+                if (!string.IsNullOrWhiteSpace(request.AiReviewJson))
+                    trip.AdminApprovedAiReviewJson = request.AiReviewJson;
+                if (!string.IsNullOrWhiteSpace(request.AdminCorrectionNotes))
+                    trip.AdminCorrectionNotes = request.AdminCorrectionNotes;
+                break;
+            case "warn":
+                trip.AdminWarningNote = request.Note?.Trim();
+                break;
+            default:
+                throw new ArgumentException("Action must be 'approve', 'decline', or 'warn'.");
+        }
+        await db.SaveChangesAsync(ct);
+        return trip;
+    }
+
+    public async Task<List<Trip>> GetTripsAsync(string? ownerUserId, string? ownerEmail, bool isAdmin, CancellationToken ct)
+    {
+        if (isAdmin)
+        {
+            return await db.Trips.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+        }
+
+        if (string.IsNullOrWhiteSpace(ownerUserId) && string.IsNullOrWhiteSpace(ownerEmail))
+        {
+            return new List<Trip>();
+        }
+
+        var account = await db.UserAccounts.FirstOrDefaultAsync(u =>
+            (!string.IsNullOrWhiteSpace(ownerUserId) && (u.Id.ToString() == ownerUserId || u.Email == ownerUserId)) ||
+            (!string.IsNullOrWhiteSpace(ownerEmail) && u.Email == ownerEmail), ct);
+
+        var targetId = account?.Id.ToString() ?? ownerUserId;
+        var targetEmail = account?.Email ?? ownerEmail;
+
+        return await db.Trips
+            .Where(x => (!string.IsNullOrWhiteSpace(targetId) && x.OwnerUserId == targetId) ||
+                        (!string.IsNullOrWhiteSpace(targetEmail) && (x.OwnerUserId == targetEmail || x.TravellerEmail == targetEmail)))
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(ct);
+    }
 
     public async Task<SharedExpense> AddExpenseAsync(CreateSharedExpenseRequest request, CancellationToken ct)
     {
@@ -160,6 +255,21 @@ public sealed class TravelWiseService(TravelWiseDbContext db)
         trip.Destination = request.Destination.Trim();
         trip.StartDate = request.StartDate;
         trip.EndDate = request.EndDate;
+        if (request.StartingPoint is not null) trip.StartingPoint = request.StartingPoint.Trim();
+        if (request.TravelMethod is not null) trip.TravelMethod = request.TravelMethod.Trim();
+        if (request.TravelVehicleType is not null) trip.TravelVehicleType = request.TravelVehicleType.Trim();
+        if (request.PlanningDetails is not null)
+            trip.PlanningDetailsJson = System.Text.Json.JsonSerializer.Serialize(request.PlanningDetails);
+        if (request.SubmittedToAdmin.HasValue)
+        {
+            trip.SubmittedToAdmin = request.SubmittedToAdmin.Value;
+            if (request.SubmittedToAdmin.Value)
+            {
+                trip.SubmittedAt = DateTime.UtcNow;
+                trip.Status = "PendingReview";
+            }
+        }
+        if (request.Status is not null) trip.Status = request.Status;
         await db.SaveChangesAsync(ct);
         return trip;
     }

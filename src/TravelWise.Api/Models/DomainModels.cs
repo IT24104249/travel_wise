@@ -3,11 +3,31 @@ namespace TravelWise.Api.Models;
 public sealed class Trip
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public string OwnerUserId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Destination { get; set; } = string.Empty;
+    public string? StartingPoint { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Traveller Identity
+    public string? TravellerName { get; set; }
+    public string? TravellerEmail { get; set; }
+
+    // Travel Transportation Method
+    public string? TravelMethod { get; set; }
+    public string? TravelVehicleType { get; set; }
+
+    // Admin Review Workflow
+    public string Status { get; set; } = "Active"; // "Active", "PendingReview", "Reviewed", "Declined"
+    public bool SubmittedToAdmin { get; set; } = false;
+    public DateTime? SubmittedAt { get; set; }
+    public string? AdminFeedback { get; set; }
+    public string? AdminWarningNote { get; set; }
+    public string? PlanningDetailsJson { get; set; }
+    public string? AdminApprovedAiReviewJson { get; set; }
+    public string? AdminCorrectionNotes { get; set; }
 }
 
 public sealed class Budget
@@ -156,4 +176,3 @@ public sealed class ProviderRegistration
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
-

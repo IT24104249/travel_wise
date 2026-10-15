@@ -1,6 +1,11 @@
 @TravelWise.Api_HostAddress = http://localhost:5127
 
-GET {{TravelWise.Api_HostAddress}}/weatherforecast/
+GET {{TravelWise.Api_HostAddress}}/
+Accept: application/json
+
+###
+
+GET {{TravelWise.Api_HostAddress}}/health
 Accept: application/json
 
 ###

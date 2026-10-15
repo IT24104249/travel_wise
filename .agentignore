@@ -1,0 +1,47 @@
+# =============================================================================
+# Agent Ignore File (.agentignore / .cursorignore / .ignore)
+# Excludes libraries, binary caches, and generated files from agent context
+# to prevent token exhaustion and eliminate input complexity.
+# =============================================================================
+
+# Third-party Dependencies & Virtual Environments
+node_modules/
+**/node_modules/**
+.venv/
+**/.venv/**
+venv/
+**/venv/**
+
+# .NET Binary & Compilation Artifacts
+**/bin/**
+**/obj/**
+.vs/**
+
+# Web Build Outputs & Bundles
+**/dist/**
+**/build/**
+**/.vite/**
+**/.next/**
+
+# Flutter & Dart Compilation & Cache Artifacts
+**/.dart_tool/**
+**/android/.gradle/**
+**/android/app/build/**
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Python Bytecode & Test Caches
+**/__pycache__/**
+**/.pytest_cache/**
+*.pyc
+*.pyo
+
+# Generated Dependency Tree Lock Files (Zero business logic, massive token size)
+package-lock.json
+**/package-lock.json
+pubspec.lock
+**/pubspec.lock
+
+# System & Log Files
+**/*.log
+.git/**

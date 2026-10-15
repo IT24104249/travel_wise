@@ -1,13 +1,85 @@
-.vs/
-.idea/
+# =============================================================================
+# Dependencies & Virtual Environments (No logic, saves agent tokens & storage)
+# =============================================================================
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+venv/
+**/venv/
+env/
+**/env/
+
+# =============================================================================
+# .NET / C# Build Artifacts & Intermediate Files
+# =============================================================================
 **/bin/
 **/obj/
-**/node_modules/
-**/dist/
-**/__pycache__/
-*.pyc
-.venv/
-.env
+.vs/
+**/.vs/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+
+# =============================================================================
+# JavaScript / React (Vite / Next.js) Build Outputs
+# =============================================================================
+**/dist/
+**/build/
+.vite/
+**/.vite/
+.next/
+**/.next/
+
+# =============================================================================
+# Flutter & Android Build Artifacts & Caching
+# =============================================================================
+**/.dart_tool/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# =============================================================================
+# Python Cache, Bytecode & Testing Artifacts
+# =============================================================================
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache/
+*.egg-info/
+
+# =============================================================================
+# Lock Files (Generated dependency trees without business logic)
+# =============================================================================
+package-lock.json
+**/package-lock.json
+pubspec.lock
+**/pubspec.lock
+
+# =============================================================================
+# IDE & System Files
+# =============================================================================
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+.DS_Store
+Thumbs.db
+*.log
+**/*.log
+
+# =============================================================================
+# Local Private Secrets & Configurations
+# =============================================================================
 appsettings.Local.json
+**/appsettings.Local.json
+.env
+**/.env
+.env.local
+**/.env.local
+
