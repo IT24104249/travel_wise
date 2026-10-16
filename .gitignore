@@ -41,8 +41,6 @@ env/
 **/android/app/build/
 .flutter-plugins
 .flutter-plugins-dependencies
-*.apk
-**/*.apk
 
 # =============================================================================
 # Python Cache, Bytecode & Testing Artifacts
