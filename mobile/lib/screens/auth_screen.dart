@@ -15,9 +15,11 @@ class _AuthScreenState extends State<AuthScreen> {
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
+  final phoneCtrl = TextEditingController();
 
   bool isRegister = false;
   String selectedRole = "User"; // "User" (Traveller) or "ServiceProvider"
+  String selectedServiceType = "Accommodation & Dining";
   bool busy = false;
   String? error;
   bool obscurePassword = true;
@@ -27,6 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
     emailCtrl.dispose();
     passCtrl.dispose();
     nameCtrl.dispose();
+    phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -46,11 +49,21 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       if (isRegister) {
+        if (selectedRole == "ServiceProvider" && phoneCtrl.text.trim().isEmpty) {
+          setState(() {
+            error = "Contact phone number is required for Service Providers.";
+            busy = false;
+          });
+          return;
+        }
+
         await api.register(
           email,
           password,
           role: selectedRole,
           displayName: nameCtrl.text.trim().isNotEmpty ? nameCtrl.text.trim() : null,
+          contactPhone: selectedRole == "ServiceProvider" ? phoneCtrl.text.trim() : null,
+          serviceType: selectedRole == "ServiceProvider" ? selectedServiceType : null,
         );
         // Try auto-login after successful registration
         try {
@@ -270,36 +283,172 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
 
-                // Name and Role Dropdown if Registering
+                // Role Selection Tabs & Fields if Registering
                 if (isRegister) ...[
-                  TextField(
-                    controller: nameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Your Full Name",
-                      hintText: "Enter your name",
-                      prefixIcon: Icon(Icons.person),
+                  const Text(
+                    "Choose Account Role",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedRole,
-                    decoration: const InputDecoration(
-                      labelText: "Account Type",
-                      prefixIcon: Icon(Icons.badge),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: "User",
-                        child: Text("Traveller (Solo or Group Trips)"),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      // Traveller Role Tab
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => selectedRole = "User"),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: selectedRole == "User" ? const Color(0xFFF0FDF4) : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedRole == "User" ? const Color(0xFF10B981) : Colors.grey.shade300,
+                                width: selectedRole == "User" ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text("🧳", style: TextStyle(fontSize: 22)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Traveller",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: selectedRole == "User" ? const Color(0xFF047857) : AppTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "Plan trips",
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                      DropdownMenuItem(
-                        value: "ServiceProvider",
-                        child: Text("Service Provider (Hotel / Restaurant / Rental)"),
+                      const SizedBox(width: 12),
+                      // Service Provider Role Tab
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => selectedRole = "ServiceProvider"),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: selectedRole == "ServiceProvider" ? const Color(0xFFFFFBEB) : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedRole == "ServiceProvider" ? const Color(0xFFF59E0B) : Colors.grey.shade300,
+                                width: selectedRole == "ServiceProvider" ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text("🏨", style: TextStyle(fontSize: 22)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Provider",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: selectedRole == "ServiceProvider" ? const Color(0xFFB45309) : AppTheme.textMain,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "List business",
+                                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
-                    onChanged: (v) => setState(() => selectedRole = v ?? "User"),
                   ),
                   const SizedBox(height: 12),
+
+                  // Verification status notice
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: selectedRole == "ServiceProvider" ? const Color(0xFFFEF3C7) : const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(selectedRole == "ServiceProvider" ? "⏳ " : "⚡ "),
+                        Expanded(
+                          child: Text(
+                            selectedRole == "ServiceProvider"
+                                ? "Admin Review: Provider accounts require administrator approval before listings go live."
+                                : "Instant Access: Traveller accounts are activated immediately.",
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: selectedRole == "ServiceProvider" ? const Color(0xFF92400E) : const Color(0xFF065F46),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Name field (Full Name or Business Name)
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: InputDecoration(
+                      labelText: selectedRole == "ServiceProvider" ? "Business / Organization Name" : "Your Full Name",
+                      hintText: selectedRole == "ServiceProvider" ? "e.g. Ceylon Safari & Stays" : "e.g. Kasun Silva",
+                      prefixIcon: Icon(selectedRole == "ServiceProvider" ? Icons.business : Icons.person_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Extra fields for Service Provider
+                  if (selectedRole == "ServiceProvider") ...[
+                    TextField(
+                      controller: phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: "Business Contact Phone",
+                        hintText: "+94 77 123 4567",
+                        prefixIcon: Icon(Icons.phone_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedServiceType,
+                      decoration: const InputDecoration(
+                        labelText: "Primary Service Category",
+                        prefixIcon: Icon(Icons.category_outlined),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: "Accommodation & Dining",
+                          child: Text("Accommodation & Dining"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Transport & Vehicle Rental",
+                          child: Text("Transport & Vehicle Rental"),
+                        ),
+                        DropdownMenuItem(
+                          value: "Tours & Attractions",
+                          child: Text("Tours & Attractions"),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => selectedServiceType = v ?? "Accommodation & Dining"),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 ],
 
                 // Email & Password Fields (Empty by default)

@@ -96,6 +96,9 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
         destination: destCtrl.text.trim(),
         startDate: startDate.toIso8601String().split('T').first,
         endDate: endDate.toIso8601String().split('T').first,
+        startingPoint: startLocCtrl.text.trim().isNotEmpty ? startLocCtrl.text.trim() : null,
+        travelMethod: travelMethod,
+        travelVehicleType: travelMethod == "RENTAL_VEHICLE" ? vehicleType : null,
       );
 
       final newTripId = tripRes['id']?.toString();
@@ -130,9 +133,18 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+    final borderColor = AppTheme.getBorder(context);
+
     return Dialog(
-      backgroundColor: AppTheme.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: cardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor),
+      ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 620),
@@ -148,7 +160,7 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.15),
+                        color: AppTheme.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 20),
@@ -157,20 +169,20 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Trip Creation Wizard",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: textPrimary),
                         ),
                         Text(
                           "Step ${currentStep + 1} of 4",
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          style: TextStyle(fontSize: 11, color: textMuted),
                         ),
                       ],
                     ),
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.textSecondary, size: 20),
+                  icon: Icon(Icons.close, color: textMuted, size: 20),
                   onPressed: () => Navigator.pop(context, false),
                 ),
               ],
@@ -186,7 +198,7 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
                     height: 4,
                     margin: EdgeInsets.only(right: i < 3 ? 6 : 0),
                     decoration: BoxDecoration(
-                      color: isPassed ? AppTheme.primary : Colors.white12,
+                      color: isPassed ? AppTheme.primary : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -200,8 +212,9 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.15),
+                  color: Colors.red.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -216,10 +229,10 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
             Expanded(
               child: SingleChildScrollView(
                 child: [
-                  _buildStep1(),
-                  _buildStep2(),
-                  _buildStep3(),
-                  _buildStep4(),
+                  _buildStep1(textPrimary),
+                  _buildStep2(textPrimary, textMuted),
+                  _buildStep3(textPrimary, textMuted),
+                  _buildStep4(textPrimary, textMuted),
                 ][currentStep],
               ),
             ),
@@ -265,11 +278,11 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
   }
 
   // Step 1: Destination & Dates
-  Widget _buildStep1() {
+  Widget _buildStep1(Color textPrimary) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("1. Trip Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+        Text("1. Trip Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textPrimary)),
         const SizedBox(height: 12),
         TextField(
           controller: nameCtrl,
@@ -330,11 +343,11 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
   }
 
   // Step 2: Solo vs Group
-  Widget _buildStep2() {
+  Widget _buildStep2(Color textPrimary, Color textMuted) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("2. Travel Mode & Group Members", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+        Text("2. Travel Mode & Group Members", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textPrimary)),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -342,7 +355,7 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
               child: ChoiceChip(
                 label: const Center(child: Text("👥 Group Trip")),
                 selected: tripMode == "GROUP",
-                selectedColor: AppTheme.primary.withOpacity(0.25),
+                selectedColor: AppTheme.primary.withValues(alpha: 0.25),
                 onSelected: (_) => setState(() => tripMode = "GROUP"),
               ),
             ),
@@ -351,7 +364,7 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
               child: ChoiceChip(
                 label: const Center(child: Text("👤 Solo Explorer")),
                 selected: tripMode == "SOLO",
-                selectedColor: AppTheme.primary.withOpacity(0.25),
+                selectedColor: AppTheme.primary.withValues(alpha: 0.25),
                 onSelected: (_) => setState(() => tripMode = "SOLO"),
               ),
             ),
@@ -397,31 +410,31 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
   }
 
   // Step 3: Travel Method
-  Widget _buildStep3() {
+  Widget _buildStep3(Color textPrimary, Color textMuted) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("3. Transportation Method", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+        Text("3. Transportation Method", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textPrimary)),
         const SizedBox(height: 12),
         RadioListTile<String>(
           value: "PRIVATE_VEHICLE",
           groupValue: travelMethod,
-          title: const Text("Own Private Vehicle 🚗", style: TextStyle(fontSize: 13, color: Colors.white)),
-          subtitle: const Text("Self-driven personal car or bike", style: TextStyle(fontSize: 11)),
+          title: Text("Own Private Vehicle 🚗", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+          subtitle: Text("Self-driven personal car or bike", style: TextStyle(fontSize: 11, color: textMuted)),
           onChanged: (v) => setState(() => travelMethod = v!),
         ),
         RadioListTile<String>(
           value: "RENTAL_VEHICLE",
           groupValue: travelMethod,
-          title: const Text("Rental Vehicle Fleet 🔑", style: TextStyle(fontSize: 13, color: Colors.white)),
-          subtitle: const Text("Verified rental car, van, SUV or scooter", style: TextStyle(fontSize: 11)),
+          title: Text("Rental Vehicle Fleet 🔑", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+          subtitle: Text("Verified rental car, van, SUV or scooter", style: TextStyle(fontSize: 11, color: textMuted)),
           onChanged: (v) => setState(() => travelMethod = v!),
         ),
         RadioListTile<String>(
           value: "PUBLIC_TRANSPORT",
           groupValue: travelMethod,
-          title: const Text("Public Transit 🚌", style: TextStyle(fontSize: 13, color: Colors.white)),
-          subtitle: const Text("Scenic trains (e.g. Ella Odyssey) & expressway buses", style: TextStyle(fontSize: 11)),
+          title: Text("Public Transit 🚌", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+          subtitle: Text("Scenic trains (e.g. Ella Odyssey) & expressway buses", style: TextStyle(fontSize: 11, color: textMuted)),
           onChanged: (v) => setState(() => travelMethod = v!),
         ),
       ],
@@ -429,11 +442,11 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
   }
 
   // Step 4: Budget & Interests
-  Widget _buildStep4() {
+  Widget _buildStep4(Color textPrimary, Color textMuted) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("4. Budget & Curated Interests", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+        Text("4. Budget & Curated Interests", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textPrimary)),
         const SizedBox(height: 12),
         TextField(
           controller: budgetCtrl,
@@ -444,7 +457,7 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
           ),
         ),
         const SizedBox(height: 16),
-        const Text("Select Travel Interests:", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+        Text("Select Travel Interests:", style: TextStyle(fontSize: 12, color: textMuted)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -452,9 +465,9 @@ class _TripWizardDialogState extends State<TripWizardDialog> {
           children: availableInterests.map((interest) {
             final isSel = selectedInterests.contains(interest);
             return FilterChip(
-              label: Text(interest, style: TextStyle(fontSize: 11.5, color: isSel ? AppTheme.primary : Colors.white)),
+              label: Text(interest, style: TextStyle(fontSize: 11.5, color: isSel ? AppTheme.primary : textPrimary)),
               selected: isSel,
-              selectedColor: AppTheme.primary.withOpacity(0.2),
+              selectedColor: AppTheme.primary.withValues(alpha: 0.2),
               onSelected: (val) {
                 setState(() {
                   if (val) {

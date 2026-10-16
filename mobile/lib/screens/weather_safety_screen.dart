@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/travel_background.dart';
 
 class WeatherSafetyScreen extends StatefulWidget {
   final String? initialDestination;
@@ -74,15 +75,21 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+    final borderColor = AppTheme.getBorder(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBackground(context),
       appBar: AppBar(
         title: const Text("Weather & Safety Radar"),
-        backgroundColor: AppTheme.cardBackground,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: TravelBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -131,9 +138,9 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
                     child: ChoiceChip(
                       label: Text(d),
                       selected: isSelected,
-                      selectedColor: AppTheme.primary.withOpacity(0.25),
+                      selectedColor: AppTheme.primary.withValues(alpha: 0.25),
                       labelStyle: TextStyle(
-                        color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                        color: isSelected ? AppTheme.primary : textMuted,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         fontSize: 12,
                       ),
@@ -160,9 +167,9 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -183,19 +190,20 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
             const SizedBox(height: 24),
 
             // 4. ENVIRONMENTAL SAFETY ADVISORY
-            _buildSafetyAdvisoryCard(),
+            _buildSafetyAdvisoryCard(isDark, textPrimary, textMuted),
 
             const SizedBox(height: 24),
 
             // 5. DIRECT EMERGENCY HOTLINES (TOURIST POLICE, DMC, 1990)
-            _buildEmergencyHotlines(),
+            _buildEmergencyHotlines(textPrimary, textMuted, cardBg, borderColor),
 
             const SizedBox(height: 32),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildWeatherCard() {
     final forecast = weatherReport?['forecast']?['current'];
@@ -215,10 +223,10 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primary.withOpacity(0.35)),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.35)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -307,13 +315,13 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
     );
   }
 
-  Widget _buildSafetyAdvisoryCard() {
+  Widget _buildSafetyAdvisoryCard(bool isDark, Color textPrimary, Color textMuted) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF22C55E).withOpacity(0.1),
+        color: const Color(0xFF22C55E).withValues(alpha: isDark ? 0.12 : 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: isDark ? 0.35 : 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +334,7 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
                   color: Color(0xFF22C55E),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, size: 14, color: Colors.black),
+                child: const Icon(Icons.check, size: 14, color: Colors.white),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -334,17 +342,17 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF22C55E),
+                  color: Color(0xFF16A34A),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "The multi-agent safety radar verified destination outdoor conditions against flash flood and landslide threshold indexes. Suitable for outdoor hiking, sightseeing, and scenic transit.",
             style: TextStyle(
               fontSize: 12,
-              color: Color(0xFFC5D8DE),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
               height: 1.45,
             ),
           ),
@@ -353,44 +361,54 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
     );
   }
 
-  Widget _buildEmergencyHotlines() {
+  Widget _buildEmergencyHotlines(Color textPrimary, Color textMuted, Color cardBg, Color borderColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Sri Lanka Emergency Hotlines",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: textPrimary,
           ),
         ),
         const SizedBox(height: 12),
-        _buildHotlineTile("1912", "Tourist Police Hotline", "Direct assistance for tourists", Icons.local_police_outlined, const Color(0xFF0EA5E9)),
+        _buildHotlineTile("1912", "Tourist Police Hotline", "Direct assistance for tourists", Icons.local_police_outlined, const Color(0xFF0EA5E9), textPrimary, textMuted, cardBg, borderColor),
         const SizedBox(height: 8),
-        _buildHotlineTile("117", "Disaster Management Centre (DMC)", "Emergency weather & landslide alerts", Icons.warning_amber_rounded, const Color(0xFFF59E0B)),
+        _buildHotlineTile("117", "Disaster Management Centre (DMC)", "Emergency weather & landslide alerts", Icons.warning_amber_rounded, const Color(0xFFF59E0B), textPrimary, textMuted, cardBg, borderColor),
         const SizedBox(height: 8),
-        _buildHotlineTile("1990", "1990 Suwa Seriya Ambulance", "Free nationwide emergency medical service", Icons.medical_services_outlined, const Color(0xFFEF4444)),
+        _buildHotlineTile("1990", "1990 Suwa Seriya Ambulance", "Free nationwide emergency medical service", Icons.medical_services_outlined, const Color(0xFFEF4444), textPrimary, textMuted, cardBg, borderColor),
         const SizedBox(height: 8),
-        _buildHotlineTile("119", "Police Emergency Helpline", "National general emergency dispatch", Icons.shield_outlined, const Color(0xFF22C55E)),
+        _buildHotlineTile("119", "Police Emergency Helpline", "National general emergency dispatch", Icons.shield_outlined, const Color(0xFF22C55E), textPrimary, textMuted, cardBg, borderColor),
       ],
     );
   }
 
-  Widget _buildHotlineTile(String number, String title, String subtitle, IconData icon, Color color) {
+  Widget _buildHotlineTile(
+    String number,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    Color textPrimary,
+    Color textMuted,
+    Color cardBg,
+    Color borderColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
+        color: cardBg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -400,15 +418,15 @@ class _WeatherSafetyScreenState extends State<WeatherSafetyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                Text(subtitle, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textPrimary)),
+                Text(subtitle, style: TextStyle(fontSize: 11, color: textMuted)),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

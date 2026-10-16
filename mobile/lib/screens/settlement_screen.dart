@@ -67,17 +67,21 @@ class _SettlementScreenState extends State<SettlementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+    final borderColor = AppTheme.getBorder(context);
+
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBackground(context),
       appBar: AppBar(
         title: const Text("Group Debt Settlement"),
-        backgroundColor: AppTheme.cardBackground,
         elevation: 0,
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : trips.isEmpty
-              ? _buildNoTripsState()
+              ? _buildNoTripsState(textPrimary, textMuted)
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -87,21 +91,21 @@ class _SettlementScreenState extends State<SettlementScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppTheme.cardBackground,
+                          color: cardBg,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                          border: Border.all(color: borderColor),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             isExpanded: true,
                             value: selectedTripId,
-                            dropdownColor: AppTheme.cardBackground,
+                            dropdownColor: cardBg,
                             items: trips.map((t) {
                               return DropdownMenuItem<String>(
                                 value: t['id'].toString(),
                                 child: Text(
                                   "${t['name']} (${t['destination']})",
-                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: textPrimary),
                                 ),
                               );
                             }).toList(),
@@ -117,24 +121,25 @@ class _SettlementScreenState extends State<SettlementScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                           ),
                           child: Text(error!, style: const TextStyle(color: Colors.red)),
                         )
                       else ...[
                         // 2. SUMMARY METRICS
-                        _buildSummaryMetrics(),
+                        _buildSummaryMetrics(textPrimary, textMuted, cardBg, borderColor),
 
                         const SizedBox(height: 24),
 
                         // 3. MEMBER BALANCES BREAKDOWN
-                        _buildMemberBalances(),
+                        _buildMemberBalances(textPrimary, textMuted, cardBg, borderColor),
 
                         const SizedBox(height: 24),
 
                         // 4. RECOMMENDED SETTLEMENT TRANSFERS (MINIMUM CASH FLOW)
-                        _buildSettlementTransfers(),
+                        _buildSettlementTransfers(textPrimary, textMuted, cardBg, borderColor),
                       ],
 
                       const SizedBox(height: 32),
@@ -144,21 +149,21 @@ class _SettlementScreenState extends State<SettlementScreen> {
     );
   }
 
-  Widget _buildNoTripsState() {
+  Widget _buildNoTripsState(Color textPrimary, Color textMuted) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.luggage_outlined, size: 48, color: AppTheme.textSecondary),
-          SizedBox(height: 12),
+        children: [
+          Icon(Icons.luggage_outlined, size: 48, color: textMuted),
+          const SizedBox(height: 12),
           Text(
             "No Group Trips Found",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             "Create a group trip to start tracking shared expenses and debts.",
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: 12, color: textMuted),
             textAlign: TextAlign.center,
           ),
         ],
@@ -166,7 +171,7 @@ class _SettlementScreenState extends State<SettlementScreen> {
     );
   }
 
-  Widget _buildSummaryMetrics() {
+  Widget _buildSummaryMetrics(Color textPrimary, Color textMuted, Color cardBg, Color borderColor) {
     final transfers = (settlementData?['transfers'] as List?) ?? [];
     final balances = (settlementData?['balances'] as Map<String, dynamic>?) ?? {};
     final memberCount = balances.length;
@@ -177,14 +182,14 @@ class _SettlementScreenState extends State<SettlementScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.cardBackground,
+              color: cardBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
+              border: Border.all(color: borderColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Optimal Transfers", style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                Text("Optimal Transfers", style: TextStyle(fontSize: 11, color: textMuted)),
                 const SizedBox(height: 4),
                 Text(
                   "${transfers.length}",
@@ -199,14 +204,14 @@ class _SettlementScreenState extends State<SettlementScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.cardBackground,
+              color: cardBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withOpacity(0.06)),
+              border: Border.all(color: borderColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Group Members", style: TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                Text("Group Members", style: TextStyle(fontSize: 11, color: textMuted)),
                 const SizedBox(height: 4),
                 Text(
                   "$memberCount",
@@ -220,33 +225,33 @@ class _SettlementScreenState extends State<SettlementScreen> {
     );
   }
 
-  Widget _buildMemberBalances() {
+  Widget _buildMemberBalances(Color textPrimary, Color textMuted, Color cardBg, Color borderColor) {
     final balances = (settlementData?['balances'] as Map<String, dynamic>?) ?? {};
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Member Net Balances",
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
         ),
         const SizedBox(height: 10),
         if (balances.isEmpty)
-          const Text("No expense records for this trip.", style: TextStyle(fontSize: 12, color: AppTheme.textSecondary))
+          Text("No expense records for this trip.", style: TextStyle(fontSize: 12, color: textMuted))
         else
           ...balances.entries.map((entry) {
             final val = (entry.value as num).toDouble();
             final isCreditor = val > 0.005;
             final isDebtor = val < -0.005;
-            final color = isCreditor ? const Color(0xFF22C55E) : isDebtor ? const Color(0xFFEF4444) : Colors.white60;
+            final color = isCreditor ? const Color(0xFF16A34A) : isDebtor ? const Color(0xFFDC2626) : textMuted;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: AppTheme.cardBackground,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.06)),
+                border: Border.all(color: borderColor),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -255,14 +260,14 @@ class _SettlementScreenState extends State<SettlementScreen> {
                     children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundColor: color.withOpacity(0.2),
+                        backgroundColor: color.withValues(alpha: 0.15),
                         child: Text(
                           entry.key.isNotEmpty ? entry.key[0].toUpperCase() : "?",
                           style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Text(entry.key, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.white)),
+                      Text(entry.key, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: textPrimary)),
                     ],
                   ),
                   Text(
@@ -276,12 +281,12 @@ class _SettlementScreenState extends State<SettlementScreen> {
                 ],
               ),
             );
-          }).toList(),
+          }),
       ],
     );
   }
 
-  Widget _buildSettlementTransfers() {
+  Widget _buildSettlementTransfers(Color textPrimary, Color textMuted, Color cardBg, Color borderColor) {
     final transfers = (settlementData?['transfers'] as List?) ?? [];
 
     return Column(
@@ -289,14 +294,14 @@ class _SettlementScreenState extends State<SettlementScreen> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
+          children: [
             Text(
               "Optimal Debt Settlements",
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: textPrimary),
             ),
             Text(
               "Greedy Min-Cash-Flow",
-              style: TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 10, color: textMuted),
             ),
           ],
         ),
@@ -305,18 +310,18 @@ class _SettlementScreenState extends State<SettlementScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withOpacity(0.1),
+              color: const Color(0xFF22C55E).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
+              border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3)),
             ),
             child: Row(
               children: const [
-                Icon(Icons.check_circle_outline, color: Color(0xFF22C55E)),
+                Icon(Icons.check_circle_outline, color: Color(0xFF16A34A)),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     "All debts are fully settled! No payments required.",
-                    style: TextStyle(color: Color(0xFF22C55E), fontSize: 13, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: Color(0xFF16A34A), fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -333,16 +338,16 @@ class _SettlementScreenState extends State<SettlementScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppTheme.cardBackground,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.3)),
+                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withOpacity(0.15),
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.swap_horiz, color: Color(0xFFF59E0B), size: 20),
@@ -354,16 +359,16 @@ class _SettlementScreenState extends State<SettlementScreen> {
                       children: [
                         RichText(
                           text: TextSpan(
-                            style: const TextStyle(fontSize: 13, color: Colors.white),
+                            style: TextStyle(fontSize: 13, color: textPrimary),
                             children: [
-                              TextSpan(text: "$from ", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
-                              const TextSpan(text: "pays "),
-                              TextSpan(text: "$to", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF22C55E))),
+                              TextSpan(text: "$from ", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                              TextSpan(text: "pays ", style: TextStyle(color: textPrimary)),
+                              TextSpan(text: "$to", style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
                             ],
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text("Minimum split settlement transfer", style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary)),
+                        Text("Minimum split settlement transfer", style: TextStyle(fontSize: 10.5, color: textMuted)),
                       ],
                     ),
                   ),
@@ -372,13 +377,13 @@ class _SettlementScreenState extends State<SettlementScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
-                      color: Color(0xFFF59E0B),
+                      color: Color(0xFFD97706),
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
       ],
     );
   }

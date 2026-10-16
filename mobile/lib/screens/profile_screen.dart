@@ -193,37 +193,203 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _showEditProfileDialog() async {
+    final nameCtrl = TextEditingController(text: user?['displayName']?.toString() ?? '');
+    final phoneCtrl = TextEditingController(text: user?['contactPhone']?.toString() ?? '');
+    String? localError;
+    bool saving = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          title: const Text("Edit Profile Details"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (localError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(localError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                ),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Display Name",
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: "Contact Phone Number",
+                  prefixIcon: Icon(Icons.phone_outlined),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            FilledButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (nameCtrl.text.trim().isEmpty) {
+                        setDlgState(() => localError = "Display name cannot be empty.");
+                        return;
+                      }
+                      setDlgState(() {
+                        saving = true;
+                        localError = null;
+                      });
+                      try {
+                        await api.updateProfile(
+                          displayName: nameCtrl.text.trim(),
+                          contactPhone: phoneCtrl.text.trim().isNotEmpty ? phoneCtrl.text.trim() : null,
+                        );
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Profile updated successfully!")),
+                          );
+                          _loadUser();
+                        }
+                      } catch (e) {
+                        setDlgState(() {
+                          saving = false;
+                          localError = e.toString().replaceFirst("Exception: ", "");
+                        });
+                      }
+                    },
+              child: Text(saving ? "Saving..." : "Save Details"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDeleteAccountDialog() async {
+    final confirmCtrl = TextEditingController();
+    String? localError;
+    bool deleting = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlgState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppTheme.danger),
+              SizedBox(width: 8),
+              Text("Delete Account"),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Warning: This action is permanent. All your planned trips, expenses, and records will be deleted.",
+                style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Type \"DELETE\" below to confirm:",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              if (localError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(localError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                ),
+              TextField(
+                controller: confirmCtrl,
+                decoration: const InputDecoration(
+                  hintText: "DELETE",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: deleting ? null : () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.danger,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: deleting
+                  ? null
+                  : () async {
+                      if (confirmCtrl.text.trim() != "DELETE") {
+                        setDlgState(() => localError = "Please type DELETE exactly to confirm.");
+                        return;
+                      }
+                      setDlgState(() {
+                        deleting = true;
+                        localError = null;
+                      });
+                      try {
+                        await api.deleteAccount(confirmationText: "DELETE");
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          widget.onSignOut();
+                        }
+                      } catch (e) {
+                        setDlgState(() {
+                          deleting = false;
+                          localError = e.toString().replaceFirst("Exception: ", "");
+                        });
+                      }
+                    },
+              child: Text(deleting ? "Deleting..." : "Permanently Delete"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final email = (user?['email'] ?? '').toString();
-    final displayName = (user?['displayName'] ?? '').toString();
-    final role = (user?['role'] ?? 'Traveller').toString();
-
-    final displayInitial = displayName.isNotEmpty
-        ? displayName[0].toUpperCase()
-        : email.isNotEmpty
-            ? email[0].toUpperCase()
-            : 'U';
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Account"),
+        title: const Text("Account & Profile"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: "Edit Profile",
+            onPressed: _showEditProfileDialog,
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Profile Header Card
+          // Header Profile Card
           Card(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppTheme.primary,
+                    radius: 32,
+                    backgroundColor: AppTheme.primary.withOpacity(0.12),
                     child: Text(
-                      displayInitial,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      (user?['displayName']?.toString() ?? 'U').substring(0, 1).toUpperCase(),
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: AppTheme.primary),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -231,35 +397,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (displayName.isNotEmpty) ...[
-                          Text(
-                            displayName,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            email,
-                            style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
-                          ),
-                        ] else ...[
-                          Text(
-                            email.isNotEmpty ? email : "TravelWise User",
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                        Text(
+                          user?['displayName']?.toString() ?? 'TravelWise Explorer',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user?['email']?.toString() ?? 'Signed In',
+                          style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
+                        ),
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isProvider ? const Color(0xFFFEF3C7) : const Color(0xFFCCFBF1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: isProvider ? const Color(0xFFFEF3C7) : const Color(0xFFE0E7FF),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             isProvider ? "Service Provider" : "Traveller",
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: isProvider ? const Color(0xFFB45309) : AppTheme.primaryDark,
+                              color: isProvider ? const Color(0xFFB45309) : const Color(0xFF4338CA),
                             ),
                           ),
                         ),
@@ -272,82 +431,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Provider Specific Section
-          if (isProvider) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Service Provider Hub", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                FilledButton.tonalIcon(
-                  onPressed: _showAddListingDialog,
-                  icon: const Icon(Icons.add_business, size: 18),
-                  label: const Text("Add Listing"),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Manage tourist visiting spots, accommodations, restaurants and rental offerings:",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            if (loadingListings)
-              const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
-            else if (listings.isEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Column(
-                      children: const [
-                        Icon(Icons.storefront, size: 40, color: AppTheme.textMuted),
-                        SizedBox(height: 8),
-                        Text("No listings published yet. Tap 'Add Listing' to register a hotel or attraction.", textAlign: TextAlign.center),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            else
-              ...listings.take(5).map((l) => Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFE0E7FF),
-                        child: Icon(Icons.place, color: Color(0xFF4338CA)),
-                      ),
-                      title: Text(l['name']?.toString() ?? 'Listing', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text("${l['destination'] ?? ''} • ${(l['price'] as num?)?.toInt() ?? 0} LKR"),
-                      trailing: Chip(
-                        label: Text(l['isApproved'] == true ? "Approved" : "Pending", style: const TextStyle(fontSize: 11)),
-                        backgroundColor: l['isApproved'] == true ? const Color(0xFFDCFCE7) : const Color(0xFFFEF9C3),
-                      ),
-                    ),
-                  )),
-            const SizedBox(height: 24),
-          ],
-
-          // App Architecture & Integrity Info
+          // Edit Profile Details Tile
           Card(
-            color: const Color(0xFFF8FAFC),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("System Integration Status", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  const SizedBox(height: 10),
-                  _buildStatusRow("Backend API:", "ASP.NET Core (Port 5127)", Colors.green),
-                  const SizedBox(height: 6),
-                  _buildStatusRow("Database:", "Supabase PostgreSQL (Active)", Colors.green),
-                  const SizedBox(height: 6),
-                  _buildStatusRow("AI Service:", "Python FastAPI + Gemini", Colors.green),
-                  const SizedBox(height: 6),
-                  _buildStatusRow("Cloud Storage:", "Supabase Receipts Bucket", Colors.green),
-                ],
+            child: ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFE0F2FE),
+                child: Icon(Icons.person, color: Color(0xFF0284C7)),
               ),
+              title: const Text("Edit Profile Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              subtitle: const Text("Update display name and contact phone", style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _showEditProfileDialog,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 10),
 
           // Security Settings (Change Password)
           Card(
@@ -362,7 +459,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: _showChangePasswordDialog,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+
+          // Danger Zone (Delete Account)
+          Card(
+            child: ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFFEE2E2),
+                child: Icon(Icons.delete_forever, color: AppTheme.danger),
+              ),
+              title: const Text("Delete Account", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.danger)),
+              subtitle: const Text("Permanently delete account and all data", style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _showDeleteAccountDialog,
+            ),
+          ),
+          const SizedBox(height: 24),
 
           // Sign Out Button
           FilledButton.icon(
@@ -379,22 +491,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatusRow(String label, String value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppTheme.textMuted)),
-        Row(
-          children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 6),
-            Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ],
     );
   }
 }

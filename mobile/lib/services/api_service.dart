@@ -14,8 +14,11 @@ class ApiService {
   String get baseUrl {
     const custom = String.fromEnvironment('API_URL');
     if (custom.isNotEmpty) return custom;
-    return kIsWeb ? 'http://localhost:5127' : 'http://10.0.2.2:5127';
+    // Hosted live cloud backend on Render
+    return 'https://travelwise-api-cn68.onrender.com';
   }
+
+  bool get isCloud => baseUrl.startsWith('https://');
 
   Future<String?> getToken() async => await _storage.read(key: 'access_token');
 
@@ -127,12 +130,21 @@ class ApiService {
     return token;
   }
 
-  Future<void> register(String email, String password, {String role = 'User', String? displayName}) async {
+  Future<void> register(
+    String email,
+    String password, {
+    String role = 'User',
+    String? displayName,
+    String? contactPhone,
+    String? serviceType,
+  }) async {
     await request('/api/auth/register', method: 'POST', body: {
       'email': email.trim(),
       'password': password,
       'role': role,
       if (displayName != null) 'displayName': displayName,
+      if (contactPhone != null) 'contactPhone': contactPhone,
+      if (serviceType != null) 'serviceType': serviceType,
     });
   }
 
@@ -162,18 +174,36 @@ class ApiService {
     return res as List<dynamic>;
   }
 
+  Future<dynamic> getTrip(String tripId) async {
+    return await request('/api/trips/$tripId');
+  }
+
   Future<dynamic> createTrip({
     required String name,
     required String destination,
     required String startDate,
     required String endDate,
+    String? startingPoint,
+    String? travelMethod,
+    String? travelVehicleType,
+    bool submittedToAdmin = false,
+    Map<String, dynamic>? planningDetails,
   }) async {
     return await request('/api/trips', method: 'POST', body: {
       'name': name,
       'destination': destination,
       'startDate': startDate,
       'endDate': endDate,
+      if (startingPoint != null) 'startingPoint': startingPoint,
+      if (travelMethod != null) 'travelMethod': travelMethod,
+      if (travelVehicleType != null) 'travelVehicleType': travelVehicleType,
+      'submittedToAdmin': submittedToAdmin,
+      if (planningDetails != null) 'planningDetails': planningDetails,
     });
+  }
+
+  Future<dynamic> updateTrip(String tripId, Map<String, dynamic> data) async {
+    return await request('/api/trips/$tripId', method: 'PUT', body: data);
   }
 
   // Budgets & Expenses
@@ -370,5 +400,40 @@ class ApiService {
       'currentPassword': oldPassword,
       'newPassword': newPassword,
     });
+  }
+
+  // User Profile & Account Management
+  Future<Map<String, dynamic>?> getProfile() async {
+    try {
+      final res = await request('/api/auth/profile');
+      return res as Map<String, dynamic>?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    String? displayName,
+    String? contactPhone,
+    String? serviceType,
+  }) async {
+    final res = await request('/api/auth/profile', method: 'PUT', body: {
+      if (displayName != null) 'displayName': displayName,
+      if (contactPhone != null) 'contactPhone': contactPhone,
+      if (serviceType != null) 'serviceType': serviceType,
+    });
+    return (res as Map<String, dynamic>?) ?? {};
+  }
+
+  Future<Map<String, dynamic>> deleteAccount({
+    required String confirmationText,
+    String? reason,
+  }) async {
+    final res = await request('/api/auth/delete-account', method: 'POST', body: {
+      'confirmationText': confirmationText,
+      if (reason != null) 'reason': reason,
+    });
+    await clearToken();
+    return (res as Map<String, dynamic>?) ?? {};
   }
 }

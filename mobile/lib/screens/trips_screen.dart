@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/travel_background.dart';
 import 'trip_detail_screen.dart';
 import 'trip_wizard_dialog.dart';
 
@@ -87,11 +88,12 @@ class TripsScreenState extends State<TripsScreen> {
         icon: const Icon(Icons.add),
         label: const Text("New Trip"),
       ),
-      body: RefreshIndicator(
-        onRefresh: loadTrips,
-        child: loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
+      body: TravelBackground(
+        child: RefreshIndicator(
+          onRefresh: loadTrips,
+          child: loading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (error != null)
@@ -154,7 +156,7 @@ class TripsScreenState extends State<TripsScreen> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundColor: AppTheme.primary.withOpacity(0.15),
+                                    backgroundColor: AppTheme.primary.withValues(alpha: 0.15),
                                     child: const Icon(Icons.card_travel, color: AppTheme.primary),
                                   ),
                                   const SizedBox(width: 12),
@@ -169,16 +171,16 @@ class TripsScreenState extends State<TripsScreen> {
                                         const SizedBox(height: 2),
                                         Row(
                                           children: [
-                                            const Icon(Icons.place, size: 14, color: AppTheme.textMuted),
+                                            const Icon(Icons.place, size: 14, color: AppTheme.primary),
                                             const SizedBox(width: 4),
-                                            Text(dest, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                                            Text(dest, style: TextStyle(color: AppTheme.getTextMuted(context), fontSize: 13)),
                                           ],
                                         ),
                                       ],
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, size: 20, color: Colors.white38),
+                                    icon: Icon(Icons.delete_outline, size: 20, color: AppTheme.getTextMuted(context)),
                                     onPressed: () async {
                                       final confirm = await showDialog<bool>(
                                         context: context,
@@ -245,6 +247,7 @@ class TripsScreenState extends State<TripsScreen> {
                   }),
                 ],
               ),
+        ),
       ),
     );
   }

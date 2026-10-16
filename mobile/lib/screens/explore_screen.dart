@@ -55,6 +55,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+    final borderColor = AppTheme.getBorder(context);
+
     final filtered = sriLankaAttractions.where((item) {
       final matchesCat =
           selectedCategory == "All" || item.category == selectedCategory;
@@ -65,7 +71,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.getBackground(context),
       body: CustomScrollView(
         slivers: [
           // Elegant Hero SliverAppBar with Sigiriya Golden Hour
@@ -102,9 +108,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.35),
-                          const Color(0xFF0F172A).withOpacity(0.55),
-                          const Color(0xFF0F172A).withOpacity(0.95),
+                          Colors.black.withValues(alpha: 0.35),
+                          const Color(0xFF0F172A).withValues(alpha: 0.55),
+                          const Color(0xFF0F172A).withValues(alpha: 0.95),
                         ],
                         stops: const [0.0, 0.55, 1.0],
                       ),
@@ -120,7 +126,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B).withOpacity(0.9),
+                            color: const Color(0xFFF59E0B).withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
@@ -147,7 +153,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         Text(
                           "UNESCO citadels, coastal headlands & wild safaris",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 13,
                           ),
                         ),
@@ -162,25 +168,29 @@ class _ExploreScreenState extends State<ExploreScreen> {
           // Search Bar & Filter Tabs
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              decoration: BoxDecoration(
+                color: cardBg,
+                border: Border(bottom: BorderSide(color: borderColor)),
+              ),
               child: Column(
                 children: [
                   TextField(
+                    style: TextStyle(color: textPrimary, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: "Search places, ruins, beaches, safaris...",
-                      hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                      hintStyle: TextStyle(fontSize: 13, color: textMuted),
                       prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 22),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
+                      fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: borderColor),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        borderSide: BorderSide(color: borderColor),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -200,17 +210,18 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           child: FilterChip(
                             label: Text(cat),
                             selected: isSelected,
-                            selectedColor: AppTheme.primary.withOpacity(0.18),
+                            selectedColor: AppTheme.primary.withValues(alpha: 0.22),
                             checkmarkColor: AppTheme.primary,
+                            backgroundColor: cardBg,
                             labelStyle: TextStyle(
-                              color: isSelected ? AppTheme.primaryDark : const Color(0xFF64748B),
+                              color: isSelected ? (isDark ? const Color(0xFF5EEAD4) : AppTheme.primaryDark) : textMuted,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                               fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                               side: BorderSide(
-                                color: isSelected ? AppTheme.primary : const Color(0xFFE2E8F0),
+                                color: isSelected ? AppTheme.primary : borderColor,
                               ),
                             ),
                             onSelected: (_) => setState(() => selectedCategory = cat),
@@ -249,6 +260,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _showAttractionModal(BuildContext context, Attraction item) {
+    final isDark = AppTheme.isDarkMode(context);
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -259,9 +275,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
         minChildSize: 0.5,
         expand: false,
         builder: (_, scrollCtrl) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: SingleChildScrollView(
             controller: scrollCtrl,
@@ -274,7 +290,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     width: 44,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? const Color(0xFF475569) : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
@@ -295,13 +311,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.12),
+                        color: AppTheme.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         item.category,
-                        style: const TextStyle(
-                          color: AppTheme.primaryDark,
+                        style: TextStyle(
+                          color: isDark ? const Color(0xFF5EEAD4) : AppTheme.primaryDark,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -310,7 +326,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
+                        color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -319,7 +335,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           const SizedBox(width: 4),
                           Text(
                             "${item.rating} / 5.0",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF92400E)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+                            ),
                           ),
                         ],
                       ),
@@ -329,7 +349,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 const SizedBox(height: 12),
                 Text(
                   item.name,
-                  style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold, letterSpacing: -0.5, color: textPrimary),
                 ),
                 const SizedBox(height: 5),
                 Row(
@@ -338,22 +358,26 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     const SizedBox(width: 4),
                     Text(
                       item.destination,
-                      style: const TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.w600, fontSize: 14),
+                      style: TextStyle(color: textMuted, fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Text(
                   item.description,
-                  style: const TextStyle(fontSize: 15, height: 1.6, color: Color(0xFF334155)),
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
+                    color: isDark ? const Color(0xFF451A03).withValues(alpha: 0.35) : const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
+                    border: Border.all(color: isDark ? const Color(0xFFB45309).withValues(alpha: 0.5) : const Color(0xFFFDE68A)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,15 +525,21 @@ class AttractionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+    final textPrimary = AppTheme.getTextMain(context);
+    final textMuted = AppTheme.getTextMuted(context);
+    final cardBg = AppTheme.getCardBg(context);
+    final borderColor = AppTheme.getBorder(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -541,7 +571,7 @@ class AttractionCard extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black.withOpacity(0.65)],
+                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.65)],
                       ),
                     ),
                   ),
@@ -552,7 +582,7 @@ class AttractionCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A).withOpacity(0.85),
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.85),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -571,10 +601,10 @@ class AttractionCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4),
                       ],
                     ),
                     child: Row(
@@ -619,14 +649,14 @@ class AttractionCard extends StatelessWidget {
                 children: [
                   Text(
                     attraction.name,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     attraction.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.5),
+                    style: TextStyle(color: textMuted, fontSize: 13, height: 1.5),
                   ),
                   const SizedBox(height: 14),
                   Row(
@@ -635,9 +665,9 @@ class AttractionCard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Foreigner Entry",
-                            style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold, letterSpacing: 0.3),
+                            style: TextStyle(fontSize: 10, color: textMuted, fontWeight: FontWeight.bold, letterSpacing: 0.3),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -648,7 +678,7 @@ class AttractionCard extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
                               color: attraction.feeLkr > 0
-                                  ? AppTheme.primaryDark
+                                  ? (isDark ? const Color(0xFF5EEAD4) : AppTheme.primaryDark)
                                   : AppTheme.success,
                             ),
                           ),
